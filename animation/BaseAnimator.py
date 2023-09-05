@@ -3,7 +3,8 @@ import matplotlib.pyplot as plt
 from PIL import Image, ImageDraw
 import cv2
 
-from helpers.perlin2d import generate_perlin_noise_2d, generate_fractal_noise_2d
+import helpers.perlin2d
+
 
 class BaseAnimator:
     """
@@ -24,9 +25,9 @@ class BaseAnimator:
         image = np.zeros(self.image_shape)
 
         size_framed = (2 * self.fig_size, 2 * self.fig_size)
-        noise = generate_fractal_noise_2d(size_framed, (8, 8), octaves=4, lacunarity=2, persistence=0.2) * noise_muls[0]
-        noise += generate_fractal_noise_2d(size_framed, (16, 16), octaves=4, lacunarity=2, persistence=0.2) * noise_muls[1]
-        noise += generate_fractal_noise_2d(size_framed, (4, 4), octaves=3, lacunarity=2, persistence=0.2) * noise_muls[2]
+        noise = helpers.perlin2d.generate_fractal_noise_2d(size_framed, (8, 8), octaves=4, lacunarity=2, persistence=0.2) * noise_muls[0]
+        noise += helpers.perlin2d.generate_fractal_noise_2d(size_framed, (16, 16), octaves=4, lacunarity=2, persistence=0.2) * noise_muls[1]
+        noise += helpers.perlin2d.generate_fractal_noise_2d(size_framed, (4, 4), octaves=3, lacunarity=2, persistence=0.2) * noise_muls[2]
         noise = (noise - noise.min()) / (noise.max() - noise.min())
 
         image[
