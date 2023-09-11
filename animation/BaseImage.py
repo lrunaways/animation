@@ -4,7 +4,7 @@ import cv2
 import matplotlib.pyplot as plt
 
 from . import perlin2d
-from colour_mapping import colormap
+from .colour_mapping import colormap
 
 
 class BaseImage:
