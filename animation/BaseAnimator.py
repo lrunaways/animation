@@ -12,14 +12,14 @@ class BaseAnimator:
     Отрисовывает 2д бинарную маску формы для покадровой анимации
 
     """
-    def __init__(self, n_frames, image_shape, fig_size, seed=28, base_image=None):
+    def __init__(self, n_frames, image_shape, fig_size, seed=28, base_image=None, type='central'):
         self.n_frames = n_frames
         self.image_shape = image_shape
         self.center_coord = image_shape[0] // 2, image_shape[1] // 2
         self.fill_color = 1
-        self.fig_size = fig_size
+        self.fig_size = np.array(fig_size)
         self.base_image = base_image
-
+        self.type = type
         self.seed = seed
 
     def draw_func(self, **kwargs):
@@ -55,8 +55,8 @@ class CircleGrow(BaseAnimator):
 
         params = {
             'xy': [
-                (self.center_coord[0]-current_obj_size, self.center_coord[1]-current_obj_size),
-                (self.center_coord[0]+current_obj_size, self.center_coord[1]+current_obj_size)
+                (self.center_coord[0]-current_obj_size[1], self.center_coord[1]-current_obj_size[1]),
+                (self.center_coord[0]+current_obj_size[0], self.center_coord[1]+current_obj_size[0])
             ],
             'fill': self.fill_color
         }
@@ -69,16 +69,27 @@ class CircleGrow(BaseAnimator):
 
 class RectangleGrow(BaseAnimator):
     def get_i_frame_params(self, i_frame):
+        assert self.type in ['central', 'bottom']
         size_mul = (i_frame / self.n_frames)
         current_obj_size = self.fig_size * size_mul
 
-        params = {
-            'xy': [
-                (self.center_coord[0]-current_obj_size, self.center_coord[1]-current_obj_size),
-                (self.center_coord[0]+current_obj_size, self.center_coord[1]+current_obj_size)
-            ],
-            'fill': self.fill_color
-        }
+        if self.type == 'central':
+            params = {
+                'xy': [
+                    (self.center_coord[0]-current_obj_size[1], self.center_coord[1]-current_obj_size[1]),
+                    (self.center_coord[0]+current_obj_size[0], self.center_coord[1]+current_obj_size[0])
+                ],
+                'fill': self.fill_color,
+            }
+        elif self.type == 'bottom':
+            params = {
+                'xy': [
+                    (self.center_coord[0]-self.fig_size[1], self.center_coord[1]-current_obj_size[1]),
+                    (self.center_coord[0]+self.fig_size[0], self.center_coord[1]+current_obj_size[0])
+                ],
+                'fill': self.fill_color,
+            }
+
         return params
 
     def draw_func(self, **kwargs):
@@ -91,8 +102,8 @@ class RectangleAppear(BaseAnimator):
 
         params = {
             'xy': [
-                (self.center_coord[0]-current_obj_size, self.center_coord[1]-current_obj_size),
-                (self.center_coord[0]+current_obj_size, self.center_coord[1]+current_obj_size)
+                (self.center_coord[0]-current_obj_size[1], self.center_coord[1]-current_obj_size[1]),
+                (self.center_coord[0]+current_obj_size[0], self.center_coord[1]+current_obj_size[0])
             ],
             'fill': self.fill_color,
             'i_frame': i_frame
@@ -108,3 +119,43 @@ class RectangleAppear(BaseAnimator):
         self.base_image[self.base_image < thr] = 0
         return 1
 
+class TriangleGrow(RectangleGrow):
+    def get_i_frame_params(self, i_frame):
+        assert self.type in ['bottom', 'top']
+        size_mul = (i_frame / self.n_frames)
+        current_obj_size = self.fig_size * size_mul
+
+        # if self.type == 'central':
+        #     params = {
+        #         'xy': [
+        #             (self.center_coord[0]-current_obj_size[1], self.center_coord[1]-current_obj_size[1]),
+        #             (self.center_coord[0]+current_obj_size[0], self.center_coord[1]+current_obj_size[0])
+        #         ],
+        #         'fill': self.fill_color,
+        #     }
+        if self.type == 'top':
+            tip_point = self.center_coord[1] + current_obj_size[1]
+            params = {
+                'xy': [
+                    (self.center_coord[0]-self.fig_size[0], self.center_coord[1]),
+                    (self.center_coord[0]+self.fig_size[0], self.center_coord[1]),
+                    (self.center_coord[0], tip_point)
+                ],
+                'fill': self.fill_color,
+            }
+        elif self.type == 'bottom':
+            tip_point = self.center_coord[1] - current_obj_size[1]
+            params = {
+                'xy': [
+                    (self.center_coord[0]-self.fig_size[0], self.center_coord[1]),
+                    (self.center_coord[0]+self.fig_size[0], self.center_coord[1]),
+                    (self.center_coord[0], tip_point)
+                ],
+                'fill': self.fill_color,
+            }
+
+        return params
+
+    def draw_func(self, **kwargs):
+        self.draw_obj.polygon(xy=kwargs['xy'], fill=kwargs['fill'])
+        return 1

@@ -18,7 +18,7 @@ class PerlinImage(BaseImage):
     def generate_base_image(self, noise_muls=[4, 1.5, 4]):
         image = np.zeros(self.image_shape)
 
-        size_framed = (2 * self.fig_size, 2 * self.fig_size)
+        size_framed = (2 * self.fig_size[1], 2 * self.fig_size[0])
         noise = perlin2d.generate_fractal_noise_2d(size_framed, (8, 8), octaves=4, lacunarity=2, persistence=0.2) * \
                 noise_muls[0]
         noise += perlin2d.generate_fractal_noise_2d(size_framed, (16, 16), octaves=4, lacunarity=2,
@@ -28,8 +28,8 @@ class PerlinImage(BaseImage):
         noise = (noise - noise.min()) / (noise.max() - noise.min())
 
         image[
-        self.center_coord[0] - self.fig_size: self.center_coord[0] + self.fig_size,
-        self.center_coord[1] - self.fig_size: self.center_coord[1] + self.fig_size,
+        self.center_coord[0] - self.fig_size[1]: self.center_coord[0] + self.fig_size[0],
+        self.center_coord[1] - self.fig_size[1]: self.center_coord[1] + self.fig_size[0],
         ] = noise
 
         self.noise_max = noise.max() + 1e-6
@@ -40,7 +40,7 @@ class PerlinImage(BaseImage):
 class FractalImage(BaseImage):
     def generate_base_image(self, iTime=10, iterations=32):
         image = np.zeros(self.image_shape)
-        self.size_framed = np.array([2 * self.fig_size, 2 * self.fig_size])
+        self.size_framed = np.array([2 * self.fig_size[1], 2 * self.fig_size[0]])
 
         uv_x = np.ones(self.size_framed) * np.arange(self.size_framed[1])[None, :] / self.size_framed[1]
         uv_y = np.ones(self.size_framed) * np.arange(self.size_framed[0])[:, None] / self.size_framed[0]
@@ -77,8 +77,8 @@ class FractalImage(BaseImage):
         self.noise_min = out_vingetted.min() - 1e-6
 
         image[
-        self.center_coord[0] - self.fig_size: self.center_coord[0] + self.fig_size,
-        self.center_coord[1] - self.fig_size: self.center_coord[1] + self.fig_size,
+        self.center_coord[0] - self.fig_size[1]: self.center_coord[1] + self.fig_size[1],
+        self.center_coord[0] - self.fig_size[0]: self.center_coord[1] + self.fig_size[0],
         ] = out_vingetted[..., 0]
         return image
 
@@ -102,6 +102,6 @@ class FractalImage(BaseImage):
 
 
 if __name__=="__main__":
-    im_obj = FractalImage(image_shape=(768, 512), fig_size=64)
+    im_obj = FractalImage(image_shape=(768, 512), fig_size=(64, 64))
     # im_obj = FractalImage(image_shape=(450, 800), fig_size=64)
     base_image = im_obj.generate_base_image()
