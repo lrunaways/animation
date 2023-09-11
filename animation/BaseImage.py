@@ -3,8 +3,8 @@ from PIL import Image, ImageDraw
 import cv2
 import matplotlib.pyplot as plt
 
-from animation import perlin2d
-from animation.colour_mapping import colormap
+from . import perlin2d
+from colour_mapping import colormap
 
 
 class BaseImage:
