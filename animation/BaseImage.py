@@ -5,7 +5,8 @@ import matplotlib.pyplot as plt
 
 from . import perlin2d
 from .colour_mapping import colormap
-
+from diffusers.pipelines.stable_diffusion_xl import StableDiffusionXLImg2ImgPipeline
+from diffusers.models import AutoencoderKL, UNet2DConditionModel
 
 class BaseImage:
     def __init__(self, image_shape, fig_size):
