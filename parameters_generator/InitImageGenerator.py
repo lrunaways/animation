@@ -1,8 +1,8 @@
 import PIL
 import numpy as np
 
-from animation.BaseAnimator import *
-from animation.BaseImage import *
+from ..animation.BaseAnimator import *
+from ..animation.BaseImage import *
 
 
 class InitImageGenerator:
