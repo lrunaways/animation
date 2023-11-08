@@ -1,3 +1,3 @@
-from parameters_generator.DiffusionParameters import DiffusionParameters
-from parameters_generator.GenerationParameters import GenerationParameters
-from parameters_generator.InitImageGenerator import InitImageGenerator
+from animation.parameters_generator.DiffusionParameters import DiffusionParameters
+from animation.parameters_generator.GenerationParameters import GenerationParameters
+from animation.parameters_generator.InitImageGenerator import InitImageGenerator
