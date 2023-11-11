@@ -1,6 +1,6 @@
 import torch
 
-from helpers.lerps_funcs import interpolation_funcs
+from diffuse_animation.helpers import interpolation_funcs
 
 
 class DiffusionParameters:

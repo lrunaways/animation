@@ -3,8 +3,8 @@ from PIL import Image, ImageDraw
 import cv2
 import matplotlib.pyplot as plt
 
-from . import perlin2d
-from .colour_mapping import colormap
+from diffuse_animation.animation import perlin2d
+from diffuse_animation.animation.colour_mapping import colormap
 from diffusers.pipelines.stable_diffusion_xl import StableDiffusionXLImg2ImgPipeline
 from diffusers.models import AutoencoderKL, UNet2DConditionModel
 

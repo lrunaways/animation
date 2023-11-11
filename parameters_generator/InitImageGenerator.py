@@ -1,8 +1,6 @@
 import PIL
-import numpy as np
 
-from animation.BaseAnimator import *
-from animation.BaseImage import *
+from diffuse_animation.animation import *
 
 
 class InitImageGenerator:
