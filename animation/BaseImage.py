@@ -1,12 +1,8 @@
 import numpy as np
-from PIL import Image, ImageDraw
-import cv2
 import matplotlib.pyplot as plt
 
 from diffuse_animation.animation import perlin2d
-from diffuse_animation.animation.colour_mapping import colormap
-from diffusers.pipelines.stable_diffusion_xl import StableDiffusionXLImg2ImgPipeline
-from diffusers.models import AutoencoderKL, UNet2DConditionModel
+
 
 class BaseImage:
     def __init__(self, image_shape, fig_size):
