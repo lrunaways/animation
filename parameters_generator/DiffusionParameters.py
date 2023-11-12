@@ -68,15 +68,16 @@ class DiffusionParameters:
     if self.variation_noises:
       cur_var_noise = self.variation_noises[idx_global]
       next_var_noise = self.variation_noises[idx_global] + 1
-      diffusion_parameters['var_noise'] = [cur_var_noise, next_var_noise]
+      diffusion_parameters['variation_noise'] = [cur_var_noise, next_var_noise]
     else:
-      diffusion_parameters['var_noise'] = False
+      diffusion_parameters['variation_noise'] = False
 
     #TODO: different interp funcs
     seed_alpha = (i_frame/self.n_frames)**2.
     diffusion_parameters['seed_alpha'] = seed_alpha
     # seed_alpha_linear = (i_frame/N_FRAMES)
     diffusion_parameters['prompt_alpha'] = (i_frame/self.n_frames)**2.
+    diffusion_parameters['interpolation'] = self.interpolation
 
     diffusion_parameters['guidance'] = interpolation_funcs['lerp'](seed_alpha, cur_guidance, next_guidance)
     diffusion_parameters['strength'] = interpolation_funcs['lerp'](seed_alpha, cur_strength, next_strength)
