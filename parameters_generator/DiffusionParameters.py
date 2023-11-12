@@ -47,7 +47,7 @@ class DiffusionParameters:
 
 
   def __getitem__(self, idx):
-    if idx < 0 or idx > self.n_frames*(len(self.seeds)-1)-1:
+    if idx < 0 or idx > self.n_frames*(len(self.seeds))-1:
       raise IndexError
     i_frame = idx % self.n_frames
 
