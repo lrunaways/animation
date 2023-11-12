@@ -13,8 +13,6 @@ class GenerationParameters:
   #   return image
 
   def __getitem__(self, idx):
-    if idx < 0 or idx > self.n_frames - 1:
-      raise IndexError
     params = {}
     params.update(self.diffusion_parameters[idx])
     params['image'] = self.init_image_generator[idx]
