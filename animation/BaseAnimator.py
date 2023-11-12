@@ -159,3 +159,20 @@ class TriangleGrow(RectangleGrow):
     def draw_func(self, **kwargs):
         self.draw_obj.polygon(xy=kwargs['xy'], fill=kwargs['fill'])
         return 1
+
+class FullImage(BaseAnimator):
+    def __init__(self, image_shape, base_image=None):
+        if base_image is not None:
+            self.base_image = np.ones_like(base_image)
+        else:
+            self.base_image = np.ones(image_shape)
+
+    def get_frame(self, i_frame, base_image, blur=None):
+        return self.base_image
+
+class FromMask(BaseAnimator):
+    def __init__(self, base_image):
+        self.base_image = base_image
+
+    def get_frame(self, i_frame, base_image, blur=None):
+        return self.base_image
