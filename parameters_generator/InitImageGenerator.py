@@ -1,4 +1,5 @@
 import PIL
+import numpy as np
 
 from diffuse_animation.animation import *
 

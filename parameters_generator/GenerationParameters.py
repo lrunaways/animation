@@ -1,5 +1,4 @@
 
-
 class GenerationParameters:
   def __init__(self, init_image, n_frames, init_image_generator, diffusion_parameters, resize_factor=1):
     self.init_image = init_image
@@ -22,7 +21,9 @@ class GenerationParameters:
     params['image_name'] = f"{idx}_test" + '.png'
     if self.resize_factor != 1:
       params['image'] = params['image'].resize(
+        (
           int(params['image'].size[0]*self.resize_factor),
           int(params['image'].size[1]*self.resize_factor),
+        )
       )
     return params
