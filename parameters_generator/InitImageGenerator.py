@@ -23,8 +23,9 @@ class InitImageGenerator:
     if self.always_full:
       return self.init_image
 
-    if idx < 0 or idx > self.n_frames - 1:
+    if idx < 0:
       raise IndexError
+    idx = min(idx, self.n_frames)
     animation_mask = np.zeros(self.image_shape)
     for mask_generator in self.mask_generators:
       animation_mask += mask_generator.get_frame(idx, blur=self.blur, base_image=self.noise_image)
