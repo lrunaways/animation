@@ -175,6 +175,7 @@ class FromMask(BaseAnimator):
         self.mask_image = mask_image
 
     def get_frame(self, i_frame, base_image, blur=None):
+        base_image = base_image.generate_base_image()
         base_image = np.array(base_image)
         base_image[self.mask_image.sum(axis=-1) < 128] = 0
         base_image = Image.fromarray(base_image)

@@ -74,8 +74,8 @@ class FractalImage(BaseImage):
         self.noise_min = out_vingetted.min() - 1e-6
 
         image[
-        self.center_coord[0] - self.fig_size[1]: self.center_coord[1] + self.fig_size[1],
-        self.center_coord[0] - self.fig_size[0]: self.center_coord[1] + self.fig_size[0],
+        self.center_coord[0] - self.fig_size[1]: self.center_coord[0] + self.fig_size[1],
+        self.center_coord[1] - self.fig_size[0]: self.center_coord[1] + self.fig_size[0],
         ] = out_vingetted[..., 0]
         return image
 
