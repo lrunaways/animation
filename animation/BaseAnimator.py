@@ -172,11 +172,7 @@ class FullImage(BaseAnimator):
 
 class FromMask(BaseAnimator):
     def __init__(self, mask_image):
-        self.mask_image = mask_image
+        self.mask_image = mask_image.max(axis=-1) > 128
 
     def get_frame(self, i_frame, base_image, blur=None):
-        base_image = base_image.generate_base_image()
-        base_image = np.array(base_image)
-        base_image[self.mask_image.sum(axis=-1) < 128] = 0
-        base_image = Image.fromarray(base_image)
-        return base_image
+        return self.mask_image
