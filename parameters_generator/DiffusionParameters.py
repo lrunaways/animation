@@ -67,7 +67,7 @@ class DiffusionParameters:
 
     if self.variation_noises:
       cur_var_noise = self.variation_noises[idx_global]
-      next_var_noise = self.variation_noises[idx_global] + 1
+      next_var_noise = self.variation_noises[idx_global + 1]
       diffusion_parameters['variation_noise'] = [cur_var_noise, next_var_noise]
     else:
       diffusion_parameters['variation_noise'] = False
