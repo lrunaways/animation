@@ -9,6 +9,7 @@ fig_size = (24, 128)
 TYPE = 'top'
 
 if __name__ == '__main__':
+
     fig = TriangleGrow(n_frames, image_shape, fig_size, type=TYPE)
     base_image = FractalImage(image_shape, fig_size)
     frame = fig.get_frame(3, base_image=base_image)
