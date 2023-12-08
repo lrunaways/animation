@@ -1,7 +1,7 @@
 import numpy as np
 import cv2
 import PIL
-
+from PIL import Image, ImageFilter
 
 def blur(image, kernel_size=5):
     image = Image.fromarray(image)
@@ -22,7 +22,7 @@ def make_transparent(im_alpha, str=1.2):
     alpha_channel = alpha_channel[..., None]
 
     im_alpha = np.concatenate([im_alpha, alpha_channel.astype(np.uint8)], axis=-1)
-    im_alpha = PIL.Image.fromarray(im_alpha, 'RGBA')
+    im_alpha = Image.fromarray(im_alpha, 'RGBA')
     return im_alpha
 
 
