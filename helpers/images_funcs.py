@@ -28,6 +28,8 @@ def make_transparent(im_alpha, str=1.2):
 
 def make_transparent_v2(image):
     image = np.array(image)
+    fp_im = image.astype(np.float32)
+
     alpha_norm = (image.max(axis=-1, keepdims=True) / 255)
     alpha_norm = alpha_norm/alpha_norm.max()
     alpha_norm_uint = (alpha_norm**1.2 * 255).astype(np.uint8)
