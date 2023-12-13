@@ -35,6 +35,7 @@ class BaseAnimator:
         self.image = Image.fromarray(np.zeros(self.image_shape))
         self.draw_obj = ImageDraw.Draw(self.image)
 
+        i_frame = i_frame if not self.always_full else self.n_frames
         draw_params = self.get_i_frame_params(i_frame)
         self.draw_func(**draw_params)
         frame = np.array(self.image)
