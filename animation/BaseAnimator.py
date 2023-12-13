@@ -12,7 +12,7 @@ class BaseAnimator:
     Отрисовывает 2д бинарную маску формы для покадровой анимации
 
     """
-    def __init__(self, n_frames, image_shape, fig_size, seed=28, base_image=None, type='central'):
+    def __init__(self, n_frames, image_shape, fig_size, seed=28, base_image=None, type='central', always_full=False):
         self.n_frames = n_frames
         self.image_shape = image_shape
         self.center_coord = image_shape[0] // 2, image_shape[1] // 2
@@ -21,6 +21,7 @@ class BaseAnimator:
         self.base_image = base_image
         self.type = type
         self.seed = seed
+        self.always_full = always_full
 
     def draw_func(self, **kwargs):
         pass
