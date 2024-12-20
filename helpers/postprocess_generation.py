@@ -153,16 +153,20 @@ def process(image, image_gen_mask, mask_kernel, blur_kernel=31, shifts_str=1.0, 
         mask_resized = mask_resized[..., 0]
     contours, _ = cv2.findContours((mask_resized > 16).astype(np.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     all_contours = np.concatenate(contours)
-    x_max = min(image.shape[0], all_contours[:, 0, 1].max() + int(image.shape[0]*cut_padding))
-    x_min = max(0, all_contours[:, 0, 1].min() - int(image.shape[0]*cut_padding))
-    y_max = min(image.shape[1], all_contours[:, 0, 0].max() + int(image.shape[1]*cut_padding))
-    y_min = max(0, all_contours[:, 0, 0].min() - int(image.shape[1]*cut_padding))
+    # x_max = min(image.shape[0], all_contours[:, 0, 1].max() + int(image.shape[0]*cut_padding))
+    # x_min = max(0, all_contours[:, 0, 1].min() - int(image.shape[0]*cut_padding))
+    # y_max = min(image.shape[1], all_contours[:, 0, 0].max() + int(image.shape[1]*cut_padding))
+    # y_min = max(0, all_contours[:, 0, 0].min() - int(image.shape[1]*cut_padding))
 
     hull_image = np.zeros_like(image, dtype=np.uint8)
     hull = cv2.convexHull(all_contours)
     hull_image = cv2.drawContours(hull_image, [hull], -1, (1, 1, 1, 1), thickness=cv2.FILLED)
     hull_mask = (hull_image[..., 0] > 0).astype(np.uint8)
 
+    x_max = min(image.shape[0], all_contours[:, 0, 1].max() + int(image.shape[0]*cut_padding))
+    x_min = max(0, all_contours[:, 0, 1].min() - int(image.shape[0]*cut_padding))
+    y_max = min(image.shape[1], all_contours[:, 0, 0].max() + int(image.shape[1]*cut_padding))
+    y_min = max(0, all_contours[:, 0, 0].min() - int(image.shape[1]*cut_padding))
     # --------------- blur image ---------------
     kernel = [int(image.shape[0]*BLUR_CONST[0]), int(image.shape[0]*BLUR_CONST[1])]
     kernel[0], kernel[1] = kernel[0] + (kernel[0]+1) % 2, \
