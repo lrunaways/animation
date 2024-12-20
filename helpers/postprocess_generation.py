@@ -34,6 +34,14 @@ def shift_image(image, shift_x, shift_y):
     return new_image
 
 
+def adjust_exposure(image, exposure):
+    image_adjusted = np.array(image).copy()
+    image_adjusted = image_adjusted / 255.
+    image_adjusted = image_adjusted * (2**exposure)
+    image_adjusted = (np.clip(image_adjusted, 0, 1) * 255).astype(np.uint8)
+    return image_adjusted
+
+
 def adjust_gamma(image, gamma=1.0):
     # Ensure the gamma value is greater than 0
     if gamma < 0.1:
@@ -81,6 +89,38 @@ def alpha_premultiplied_blur(image, radius):
 
     return blurred_image
 
+def pad_to_square(image, pad_color=(0, 0, 0, 0)):
+    """
+    Pad a CV2 image to make it square.
+
+    Parameters:
+    - image: The input image (CV2 format).
+    - pad_color: Tuple representing the color to pad with (default is black).
+
+    Returns:
+    - The squared image.
+    """
+    h, w, _ = image.shape
+
+    # Find the maximum dimension
+    max_dim = max(h, w)
+
+    # Calculate padding
+    pad_vert = max_dim - h
+    pad_horiz = max_dim - w
+
+    # Calculate padding on each side
+    top_pad = pad_vert // 2
+    bottom_pad = pad_vert - top_pad
+    left_pad = pad_horiz // 2
+    right_pad = pad_horiz - left_pad
+
+    # Create padded image
+    padded_image = cv2.copyMakeBorder(image, top_pad, bottom_pad, left_pad, right_pad,
+                                      cv2.BORDER_CONSTANT, value=pad_color)
+
+    return padded_image
+
 
 def increase_brightness_with_alpha(image, factor):
     # Split the image into BGR and alpha channels
@@ -102,17 +142,21 @@ def increase_brightness_with_alpha(image, factor):
     return result_image
 
 
-def process(image, image_gen_mask, mask_kernel, blur_kernel=31, shifts_str=1.0, return_pil=False):
+def process(image, image_gen_mask, mask_kernel, blur_kernel=31, shifts_str=1.0, return_pil=False, pad_to_squate=False,
+            dark_adjust=0.15, bright_adjust=1.25, exposure_adjust=0.4, postprocess=True, cut_padding=0.1, n_objects_contours=1):
     #TODO: fix image size dependent kernel's sizes
+    image[..., :-1] = adjust_exposure(image[..., :-1], exposure_adjust)
 
     # --------------- Process mask ---------------
     mask_resized = cv2.resize(image_gen_mask, (image.shape[1], image.shape[0]))
-    contours, _ = cv2.findContours((mask_resized[..., 0] > 16).astype(np.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    if len(mask_resized.shape) > 2:
+        mask_resized = mask_resized[..., 0]
+    contours, _ = cv2.findContours((mask_resized > 16).astype(np.uint8), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     all_contours = np.concatenate(contours)
-    x_max = min(image.shape[0], all_contours[:, 0, 1].max() + int(image.shape[0]*0.1))
-    x_min = max(0, all_contours[:, 0, 1].min() - int(image.shape[0]*0.1))
-    y_max = min(image.shape[1], all_contours[:, 0, 0].max() + int(image.shape[1]*0.1))
-    y_min = max(0, all_contours[:, 0, 0].min() - int(image.shape[1]*0.1))
+    x_max = min(image.shape[0], all_contours[:, 0, 1].max() + int(image.shape[0]*cut_padding))
+    x_min = max(0, all_contours[:, 0, 1].min() - int(image.shape[0]*cut_padding))
+    y_max = min(image.shape[1], all_contours[:, 0, 0].max() + int(image.shape[1]*cut_padding))
+    y_min = max(0, all_contours[:, 0, 0].min() - int(image.shape[1]*cut_padding))
 
     hull_image = np.zeros_like(image, dtype=np.uint8)
     hull = cv2.convexHull(all_contours)
@@ -132,36 +176,43 @@ def process(image, image_gen_mask, mask_kernel, blur_kernel=31, shifts_str=1.0, 
     image_masked = image.copy()
     image_masked[..., -1] = image[..., -1] * blurred_mask
     image_masked_pil = Image.fromarray(image_masked)
+    if postprocess:
+        # --------------- Blur effects ---------------
+        # two dark blurred shadows + one semi-bright blurred halo
+        layered_image = Image.new("RGBA", image.shape[:-1])
 
-    # --------------- Blur effects ---------------
-    # two dark blurred shadows + one semi-bright blurred halo
-    layered_image = Image.new("RGBA", image.shape[:-1])
+        dark_masked = adjust_gamma(image_masked, dark_adjust)
+        dark_masked_pil = Image.fromarray(dark_masked)
+        dark_masked_blurred_pil = alpha_premultiplied_blur(dark_masked_pil, blur_kernel)
+        layered_image = Image.alpha_composite(layered_image, shift_image(dark_masked_blurred_pil, 0, 12*shifts_str))
+        layered_image = Image.alpha_composite(layered_image, shift_image(dark_masked_blurred_pil, 0, -12*shifts_str))
 
-    dark_masked = adjust_gamma(image_masked, 0.15)
-    dark_masked_pil = Image.fromarray(dark_masked)
-    dark_masked_blurred_pil = alpha_premultiplied_blur(dark_masked_pil, blur_kernel)
-    layered_image = Image.alpha_composite(layered_image, shift_image(dark_masked_blurred_pil, 0, 12*shifts_str))
-    layered_image = Image.alpha_composite(layered_image, shift_image(dark_masked_blurred_pil, 0, -12*shifts_str))
+        bright_masked = adjust_gamma(image_masked, bright_adjust)
+        bright_masked = Image.fromarray(bright_masked)
+        bright_masked_blurred_pil = alpha_premultiplied_blur(image_masked_pil, blur_kernel)
+        converter = ImageEnhance.Color(bright_masked_blurred_pil)
+        bright_masked_blurred_pil = converter.enhance(bright_adjust*1.5)
+        bright_masked_blurred = np.array(bright_masked_blurred_pil)
+        bright_masked_blurred = adjust_gamma(bright_masked_blurred, bright_adjust*1.25)
+        bright_masked_blurred_corrected_pil = Image.fromarray(bright_masked_blurred)
+        layered_image = Image.alpha_composite(layered_image, shift_image(bright_masked_blurred_corrected_pil, 0, -24*shifts_str))
 
-    bright_masked = adjust_gamma(image_masked, 1.25)
-    bright_masked = Image.fromarray(bright_masked)
-    bright_masked_blurred_pil = alpha_premultiplied_blur(image_masked_pil, blur_kernel)
-    converter = ImageEnhance.Color(bright_masked_blurred_pil)
-    bright_masked_blurred_pil = converter.enhance(1.75)
-    bright_masked_blurred = np.array(bright_masked_blurred_pil)
-    bright_masked_blurred = adjust_gamma(bright_masked_blurred, 1.5)
-    bright_masked_blurred_corrected_pil = Image.fromarray(bright_masked_blurred)
-    layered_image = Image.alpha_composite(layered_image, shift_image(bright_masked_blurred_corrected_pil, 0, -24*shifts_str))
+        # -------------- Blend all together --------------
+        layered_image = Image.alpha_composite(layered_image, image_masked_pil)
 
-    # -------------- Blend all together --------------
-    layered_image = Image.alpha_composite(layered_image, image_masked_pil)
+        bright_masked_blurred[..., -1] = bright_masked_blurred[..., -1] // 6
+        bright_masked_blurred_pil = Image.fromarray(bright_masked_blurred)
+        layered_image = Image.alpha_composite(layered_image, shift_image(bright_masked_blurred_pil, 0, 0))
 
-    bright_masked_blurred[..., -1] = bright_masked_blurred[..., -1] // 5
-    bright_masked_blurred_pil = Image.fromarray(bright_masked_blurred)
-    layered_image = Image.alpha_composite(layered_image, shift_image(bright_masked_blurred_pil, 0, 0))
-
-    layered_image = np.array(layered_image)
+        layered_image = np.array(layered_image)
+    else:
+        layered_image = image_masked
     layered_image = layered_image[x_min:x_max, y_min:y_max]
+    layered_image[..., :-1] = adjust_exposure(layered_image[..., :-1], exposure_adjust/2)
+
+
+    if pad_to_squate:
+        layered_image = pad_to_square(layered_image)
     if return_pil:
         layered_image = Image.fromarray(layered_image)
     return layered_image
